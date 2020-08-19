@@ -14,9 +14,7 @@ import { useEffect, useState } from '@wordpress/element';
 /**
  * Internal dependencies
  */
-import useOnFileDrop from './use-on-file-drop';
-import useOnHTMLDrop from './use-on-html-drop';
-import useOnBlockDrop from './use-on-block-drop';
+import useOnBlockDrop from '../use-on-block-drop';
 
 /** @typedef {import('@wordpress/dom').WPPoint} WPPoint */
 
@@ -78,36 +76,6 @@ export function getNearestBlockIndex( elements, position, orientation ) {
 }
 
 /**
- * Retrieve the data for a block drop event.
- *
- * @param {WPSyntheticEvent} event The drop event.
- *
- * @return {Object} An object with block drag and drop data.
- */
-function parseDropEvent( event ) {
-	let result = {
-		srcRootClientId: null,
-		srcClientIds: null,
-		type: null,
-	};
-
-	if ( ! event.dataTransfer ) {
-		return result;
-	}
-
-	try {
-		result = Object.assign(
-			result,
-			JSON.parse( event.dataTransfer.getData( 'text' ) )
-		);
-	} catch ( err ) {
-		return result;
-	}
-
-	return result;
-}
-
-/**
  * @typedef  {Object} WPBlockDropZoneConfig
  * @property {Object} element      A React ref object pointing to the block list's DOM element.
  * @property {string} rootClientId The root client id for the block list.
@@ -149,17 +117,16 @@ export default function useBlockDropZone( {
 	] );
 
 	const [ targetBlockIndex, setTargetBlockIndex ] = useState( null );
-	const onFilesDrop = useOnFileDrop( targetRootClientId, targetBlockIndex );
-	const onHTMLDrop = useOnHTMLDrop( targetRootClientId, targetBlockIndex );
-	const onDrop = useOnBlockDrop( targetRootClientId, targetBlockIndex );
+	const dropEventHandlers = useOnBlockDrop(
+		targetRootClientId,
+		targetBlockIndex
+	);
 
 	const { position } = useDropZone( {
 		element,
-		onFilesDrop,
-		onHTMLDrop,
-		onDrop,
 		isDisabled: isLockedAll,
 		withPosition: true,
+		...dropEventHandlers,
 	} );
 
 	useEffect( () => {
